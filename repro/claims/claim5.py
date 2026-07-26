@@ -215,7 +215,7 @@ def run() -> dict:
     # "add every missing transitive edge" count.  If the naive quantity always
     # matched, the exhaustive agreement above would be uninformative.
     naive_differs = 0
-    for D in _all_dags(CFG["c5_exhaustive_n"][-1]):
+    for D in _all_dags(4):   # n=3 is too small to exhibit a deletion-beats-closure case
         n = D.shape[0]
         naive = int((transitive_closure(D) & ~D).sum())
         if naive != transitivity_editing_optimum(D, _tc_dags(n)):

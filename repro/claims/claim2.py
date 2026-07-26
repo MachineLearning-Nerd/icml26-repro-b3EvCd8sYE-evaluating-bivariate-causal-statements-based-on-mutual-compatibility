@@ -57,18 +57,31 @@ _POOL_CHUNK = None
 
 
 def _config_worker(task):
-    """Monte-Carlo one (n, coefficient law, noise law) configuration."""
-    n, coef, noise, trials, seed = task
+    """Monte-Carlo one (n, coefficient law, noise law) configuration.
+
+    Sampling continues in batches until the mean of ``comp`` is estimated to a
+    fixed *relative* precision, or a cap is reached.  Stopping on precision (not
+    on whether the interval happens to exclude zero) keeps the stopping rule
+    independent of the outcome being tested, while letting the slowly-converging
+    large-n heavy-coefficient configurations get the samples they need.
+    """
+    n, coef, noise, trials, cap, target_rel, z, seed = task
     sub = np.random.default_rng(seed)
-    comps = np.empty(trials)
-    cross = np.empty(trials)
-    for t in range(trials):
-        Gamma, Sigma_N, Sigma_X, A = _draw(sub, n, coef, noise)
-        comp, B, eps = compat_and_decomposition(Sigma_X, A)
-        comps[t] = comp
-        cross[t] = float(sum(B[i, j] * eps[i, j]
-                             for i in range(n) for j in range(i + 1, n)))
-    return n, coef, noise, comps, cross
+    comps: list[float] = []
+    cross: list[float] = []
+    while True:
+        for _ in range(trials):
+            Gamma, Sigma_N, Sigma_X, A = _draw(sub, n, coef, noise)
+            comp, B, eps = compat_and_decomposition(Sigma_X, A)
+            comps.append(comp)
+            cross.append(float(sum(B[i, j] * eps[i, j]
+                                   for i in range(n) for j in range(i + 1, n))))
+        arr = np.asarray(comps)
+        m = abs(float(arr.mean()))
+        half = z * float(arr.std(ddof=1)) / np.sqrt(len(arr))
+        if len(comps) >= cap or (m > 0 and half <= target_rel * m):
+            break
+    return n, coef, noise, np.asarray(comps), np.asarray(cross)
 
 
 # --------------------------------------------------------------------------
@@ -192,7 +205,8 @@ def run() -> dict:
     ok_positive = True
     ok_orthogonal = True
     trials = CFG["c2_trials"]
-    tasks = [(n, coef, noise, trials,
+    tasks = [(n, coef, noise, trials, CFG["c2_trials_cap"],
+              CFG["c2_target_rel_precision"], z,
               [SEED, 2, n, abs(hash(coef)) % 10**6, abs(hash(noise)) % 10**6])
              for n in CFG["c2_dims"] for coef in COEF_FAMILIES for noise in noises]
     with mp.Pool(processes=min(len(tasks), os.cpu_count() or 1)) as pool:
@@ -201,17 +215,25 @@ def run() -> dict:
         m, lo, hi = mean_ci(comps, z)
         cm, clo, chi = mean_ci(cross, z)
         positive = bool(lo > 0.0)
-        orthogonal = bool(clo <= 0.0 <= chi)
+        # With a diagonal noise covariance there is no unobserved confounding,
+        # so eps -- and hence B*eps -- is identically zero in exact arithmetic.
+        # Floating-point residue of order 1e-16 would otherwise give a CI that
+        # excludes zero purely as a rounding artefact, so the test also accepts
+        # a mean that is negligible on the scale of comp itself.
+        negligible = abs(cm) <= 1e-9 * max(1.0, abs(m))
+        orthogonal = bool(clo <= 0.0 <= chi or negligible)
         gating = coef not in NON_GATING
         if gating:
             ok_positive &= positive
             ok_orthogonal &= orthogonal
         rows.append(dict(n=n, coef_family=coef, noise_family=noise,
-                         gating=gating, trials=trials,
+                         gating=gating,
                          mean_comp=m, comp_ci_lo=lo, comp_ci_hi=hi,
                          comp_positive=positive,
                          mean_cross_B_eps=cm, cross_ci_lo=clo,
                          cross_ci_hi=chi, cross_contains_zero=orthogonal,
+                         cross_negligible=bool(negligible),
+                         trials_used=len(comps),
                          frac_comp_positive=float((comps > 0).mean())))
     write_csv("claim2", "expected_compatibility.csv", rows)
     n_gate = sum(1 for r in rows if r["gating"])

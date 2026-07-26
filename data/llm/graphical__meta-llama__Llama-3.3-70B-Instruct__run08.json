@@ -1,0 +1,7 @@
+{
+ "model": "meta-llama/Llama-3.3-70B-Instruct",
+ "run": 8,
+ "ok": false,
+ "reason": "exception: <HTTPError 403: 'Forbidden'>",
+ "elapsed_s": 0.3
+}

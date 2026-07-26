@@ -23,6 +23,7 @@ import urllib.error
 import urllib.request
 
 from .gapminder import (
+    ALL_MODELS,
     GEN_PARAMS,
     MODELS,
     VARIABLES,
@@ -286,7 +287,7 @@ def main() -> None:
     runs = args.runs if args.runs else (15 if args.mode == "linear" else 10)
     token = _token()
     os.makedirs(DATA, exist_ok=True)
-    routes = ([m["route"] for m in MODELS] if not args.models
+    routes = ([m["route"] for m in ALL_MODELS] if not args.models
               else args.models.split(","))
 
     jobs = []

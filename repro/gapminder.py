@@ -71,6 +71,28 @@ MODELS = [
          route="Qwen/Qwen3-Next-80B-A3B-Instruct", params_b=80.0),
 ]
 
+# The paper's own model set (six of nine) is too small to test "higher-capacity
+# models tend to achieve higher scores" with any power: a Spearman correlation
+# on six points needs |rho| >= 0.83 to reach p < 0.05.  EXTENDED_MODELS widen the
+# ladder to thirteen models spanning 4B to 1T parameters.  These are NOT the
+# paper's models and are reported separately, as a better-powered supplementary
+# test of the same qualitative claim -- never mixed into the Table 2 comparison.
+EXTENDED_MODELS = [
+    dict(paper_name="Qwen3 4B Instruct 2507",
+         route="Qwen/Qwen3-4B-Instruct-2507", params_b=4.0),
+    dict(paper_name="Llama 3.1 8B Instruct",
+         route="meta-llama/Llama-3.1-8B-Instruct", params_b=8.0),
+    dict(paper_name="Gemma 3 12B IT", route="google/gemma-3-12b-it", params_b=12.0),
+    dict(paper_name="Qwen3 32B", route="Qwen/Qwen3-32B", params_b=32.0),
+    dict(paper_name="Llama 3.3 70B Instruct",
+         route="meta-llama/Llama-3.3-70B-Instruct", params_b=70.0),
+    dict(paper_name="DeepSeek V3", route="deepseek-ai/DeepSeek-V3", params_b=671.0),
+    dict(paper_name="Kimi K2 Instruct", route="moonshotai/Kimi-K2-Instruct",
+         params_b=1000.0),
+]
+
+ALL_MODELS = MODELS + EXTENDED_MODELS
+
 # Models from Table 2 that the Hugging Face router does not serve.  Listed so
 # the coverage gap is explicit rather than silent.
 MODELS_UNAVAILABLE = [

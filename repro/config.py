@@ -23,13 +23,16 @@ FULL = dict(
     # -- Claim 2 ----------------------------------------------------------
     c2_dims=(3, 4, 5, 6, 8, 10),
     c2_trials=20000,
+    c2_trials_cap=400000,
+    c2_target_rel_precision=0.35,
     c2_identity_trials=2000,
 
     # -- Claim 3 ----------------------------------------------------------
     c3_eps=(0.20, 0.10, 0.05, 0.025),
-    c3_delta=(0.40, 0.20, 0.08, 0.03),
-    c3_delta_eps=0.15,
-    c3_delta_repeats=3000,
+    c3_delta=(0.50, 0.20, 0.06, 0.02),
+    c3_delta_eps=0.06,
+    c3_delta_repeats=2500,
+    c3_delta_models=5,
     c3_dims=(3, 4, 5, 6, 8, 10),
     c3_repeats=400,          # draws used to estimate P(error <= eps) at each N
     c3_models=12,            # distinct ground-truth models per configuration
@@ -67,8 +70,9 @@ FULL = dict(
 SMOKE = dict(
     FULL,
     c1_symbolic_n=(2, 3, 4),
-    c2_dims=(3, 4), c2_trials=400, c2_identity_trials=100,
-    c3_eps=(0.2, 0.1, 0.05), c3_delta=(0.4, 0.2, 0.08), c3_delta_eps=0.15, c3_delta_repeats=400, c3_dims=(3, 4, 5), c3_repeats=80, c3_models=2,
+    c2_dims=(3, 4), c2_trials=400, c2_trials_cap=20000,
+    c2_target_rel_precision=0.35, c2_identity_trials=100,
+    c3_eps=(0.2, 0.1, 0.05), c3_delta=(0.5, 0.2, 0.06), c3_delta_eps=0.06, c3_delta_repeats=400, c3_delta_models=2, c3_dims=(3, 4, 5), c3_repeats=80, c3_models=2,
     c4_sigmas=(0.0, 0.2, 1.0), c4_models=4, c4_noise=3,
     c4_panels=(("m", (0, 3), dict(n=6, p=0.5)),),
     c5_exhaustive_n=(3,), c5_sampled_n=(), c5_samples=20,
