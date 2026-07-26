@@ -268,8 +268,85 @@ def lemma37(art: str, out: str):
     return _save(fig, out, "lemma37")
 
 
-ALL = [figure2, figure5, sample_complexity, expected_compatibility, llm_scores,
-       lemma37]
+def derivation(art: str, out: str):
+    """Theorem 2.10 reconstructed: sensitivity x concentration, and the rate.
+
+    Three panels, one per ingredient of the derivation.  Together they are the
+    whole argument: (a) how far comp can move per unit error in Sigma, (b) how
+    fast that error shrinks with N, (c) how fast the failure probability decays
+    -- which is what the theorem's log(n/delta) factor encodes.
+    """
+    sens = _read(os.path.join(art, "claim3", "sensitivity.csv"))
+    conc = _read(os.path.join(art, "claim3", "concentration.csv"))
+    rate = _read(os.path.join(art, "claim3", "deviation_rate.csv"))
+    fig, axes = plt.subplots(1, 3, figsize=(15.5, 4.4))
+
+    # (a) sensitivity L against each factor, with the derivation's prediction.
+    ax = axes[0]
+    # The "n" curve uses the deconfounded sweep, which shrinks the coefficient
+    # scale as n grows so that (1 + a + b) stays put; the plain n sweep moves
+    # both factors at once and its marginal slope is not an exponent in n.
+    for c, (sweep, key, lab, pred) in enumerate(
+            (("n_fixed_ab", "n", "n  (with 1 + a + b held fixed)", 2.0),
+             ("ab", "ab", "1 + a + b", 2.0), ("V", "V", "V", 1.0))):
+        rs = [r for r in sens if r["sweep"] == sweep]
+        vals = sorted({float(r["value"]) for r in rs})
+        xs = [float(np.median([float(r[key]) for r in rs
+                               if float(r["value"]) == v])) for v in vals]
+        ys = [float(np.median([float(r["L"]) for r in rs
+                               if float(r["value"]) == v])) for v in vals]
+        ax.plot(xs, ys, "o-", color=PALETTE[c], lw=1.8, ms=5,
+                label=f"{lab}\n   measured {np.polyfit(np.log(xs), np.log(ys), 1)[0]:+.2f}, "
+                      f"derivation predicts {pred:g}")
+    ax.set_xscale("log")
+    ax.set_yscale("log")
+    _style(ax, "factor value (log)", "sensitivity  L = ||grad comp||₁ (log)",
+           "(a) how far comp moves per unit error in Σ")
+    ax.legend(fontsize=8, frameon=False)
+
+    # (b) t*sqrt(N) flat across N  <=>  the error falls exactly as 1/sqrt(N).
+    ax = axes[1]
+    deltas = sorted({float(r["delta"]) for r in conc}, reverse=True)
+    for c, d in enumerate(deltas):
+        rs = sorted((r for r in conc if float(r["delta"]) == d),
+                    key=lambda r: int(r["N"]))
+        ax.plot([int(r["N"]) for r in rs], [float(r["t_sqrtN"]) for r in rs],
+                "o-", color=PALETTE[c % len(PALETTE)], lw=1.6, ms=5,
+                label=f"δ = {d:g}")
+    ax.set_xscale("log")
+    _style(ax, "samples N (log)", "t(N, δ) · √N",
+           "(b) horizontal ⇒ error ∝ 1/√N ⇒ exponent 2 in 1/ε")
+    ax.legend(fontsize=8, frameon=False, ncol=2)
+
+    # (c) -log P linear in N  <=>  N*(delta) affine in log(1/delta).
+    ax = axes[2]
+    for law, colour, style in (("gaussian", PALETTE[0], "o-"),
+                               ("student_t3", PALETTE[5], "s--")):
+        models = sorted({r["model"] for r in rate if r["law"] == law})
+        for mi in models:
+            rs = sorted((r for r in rate
+                         if r["law"] == law and r["model"] == mi),
+                        key=lambda r: int(r["N"]))
+            xs = [int(r["N"]) for r in rs if float(r["p"]) > 0]
+            ys = [-np.log(float(r["p"])) for r in rs if float(r["p"]) > 0]
+            ax.plot(xs, ys, style, color=colour, lw=1.5, ms=3.5, alpha=0.85,
+                    label=("Gaussian (theorem's hypothesis)"
+                           if law == "gaussian" else
+                           "t(3) — no exponential moment [control]")
+                    if mi == models[0] else None)
+    _style(ax, "samples N", "−log P(|comp̂ − comp| > ε)",
+           "(c) straight ⇒ N*(δ) affine in log(1/δ) ⇒ exponent 1")
+    ax.legend(fontsize=8, frameon=False, loc="upper left")
+
+    fig.suptitle("Theorem 2.10, reconstructed from its two ingredients — "
+                 "the theorem's formula is never used", fontsize=12,
+                 color="#14171A", y=1.03)
+    fig.tight_layout()
+    return _save(fig, out, "derivation")
+
+
+ALL = [figure2, derivation, figure5, sample_complexity, expected_compatibility,
+       llm_scores, lemma37]
 
 
 def build(art: str, out: str) -> list[str]:
