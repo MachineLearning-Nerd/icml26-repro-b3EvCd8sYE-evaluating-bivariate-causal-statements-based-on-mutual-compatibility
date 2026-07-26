@@ -48,7 +48,8 @@ import os
 import numpy as np
 
 from ..config import CFG, SEED
-from ..harness import Verdict, banner, wilson, write_csv, write_json
+from ..harness import (Verdict, banner, stable_hash, wilson, write_csv,
+                       write_json)
 from ..generate import perturb_statements, sample_linear_model
 from ..linear import compatibility_score, standardize
 
@@ -91,7 +92,7 @@ def run() -> dict:
             for sigma in CFG["c4_sigmas"]:
                 tasks.append((panel, value, tuple(fixed.items()), sigma,
                               CFG["c4_models"], CFG["c4_noise"],
-                              [SEED, 4, abs(hash(panel)) % 1000,
+                              [SEED, 4, stable_hash(panel) % 1000,
                                int(value * 100), int(sigma * 1000)]))
     tasks = [(p, val, dict(f), s, nm, nn, sd) for (p, val, f, s, nm, nn, sd) in tasks]
     with mp.Pool(processes=min(len(tasks), os.cpu_count() or 1)) as pool:

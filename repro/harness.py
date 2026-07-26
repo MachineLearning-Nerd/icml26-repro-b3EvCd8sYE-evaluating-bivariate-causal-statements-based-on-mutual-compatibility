@@ -2,6 +2,8 @@
 
 from __future__ import annotations
 
+import zlib
+
 import json
 import os
 import platform
@@ -59,8 +61,11 @@ def write_csv(claim: str, name: str, rows: list[dict], columns=None) -> str:
         open(path, "w").close()
         return path
     columns = columns or list(rows[0].keys())
+    # lineterminator="\n": the default "\r\n" does not survive being printed
+    # into the run log and read back out again (see repro.run_all._dump_artifacts
+    # and tools/extract_artifacts.py).
     with open(path, "w", newline="") as fh:
-        w = csv.DictWriter(fh, fieldnames=columns)
+        w = csv.DictWriter(fh, fieldnames=columns, lineterminator="\n")
         w.writeheader()
         w.writerows(rows)
     return path
@@ -133,3 +138,14 @@ class Verdict:
         write_json(self.claim, "verdict.json", rec)
         print(f"\n  ==> {self.claim}: {status}  ({rec['runtime_s']}s)", flush=True)
         return rec
+
+
+def stable_hash(s: object) -> int:
+    """A process-independent hash, for deriving reproducible child seeds.
+
+    Python salts ``hash()`` of ``str`` per process (PYTHONHASHSEED), so seeds
+    derived from it change from run to run and the "fixed seed" guarantee is
+    silently void.  CRC-32 of the UTF-8 form is stable across processes,
+    machines and Python versions.
+    """
+    return zlib.crc32(str(s).encode("utf-8"))

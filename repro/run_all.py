@@ -29,6 +29,37 @@ CLAIMS = [
 ]
 
 
+ARTIFACT_BEGIN = "<<<ARTIFACT-BEGIN"
+ARTIFACT_END = "<<<ARTIFACT-END"
+
+
+def _dump_artifacts() -> None:
+    """Emit every artifact file into stdout, framed by parseable markers.
+
+    In OpenResearch local mode the run log is the only channel back from the
+    compute node -- there is no artifact store.  Printing the raw CSV and JSON
+    here is therefore what makes the numerical evidence recoverable, and what
+    lets the published pages be generated *from the raw data* rather than
+    hand-transcribed.
+    """
+    import hashlib
+    print("\n" + "=" * 78)
+    print("RAW ARTIFACTS (framed for extraction from the run log)")
+    print("=" * 78, flush=True)
+    for root, _dirs, files in os.walk(ARTIFACTS):
+        for fn in sorted(files):
+            path = os.path.join(root, fn)
+            rel = os.path.relpath(path, ARTIFACTS)
+            with open(path, "rb") as fh:
+                raw = fh.read()
+            digest = hashlib.sha256(raw).hexdigest()
+            print(f"{ARTIFACT_BEGIN} {rel} sha256={digest} bytes={len(raw)}")
+            sys.stdout.write(raw.decode("utf-8", "replace"))
+            if raw and not raw.endswith(b"\n"):
+                print()
+            print(f"{ARTIFACT_END} {rel}", flush=True)
+
+
 def main() -> int:
     t0 = time.time()
     sha = git_sha()
@@ -80,6 +111,8 @@ def main() -> int:
         json.dump(summary, fh, indent=2)
     print(f"\n  wrote {os.path.join(ARTIFACTS, 'summary.json')}")
     print(f"  total runtime {summary['total_runtime_s']}s", flush=True)
+
+    _dump_artifacts()
 
     # Non-zero exit whenever any claim failed to reach a supported verdict.
     blocked = [r["claim"] for r in results if r["status"] == "BLOCKED"]

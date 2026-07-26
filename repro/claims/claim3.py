@@ -45,6 +45,17 @@ at or below them confirm the stated polynomial sufficiency.  Finally the
 sufficiency direction is checked directly: with the single universal constant
 ``C`` calibrated once from the whole sweep, the formula's N must actually
 deliver the (eps, delta) guarantee at every configuration.
+
+Why that is not enough on its own
+---------------------------------
+Theorem 2.10 quantifies over every model and every ``(eps, delta)``, so
+measuring one estimator's sample requirement can corroborate the bound but
+cannot establish it.  :mod:`repro.claims.claim3b` therefore adds the
+derivation: the bound factors into the exact sensitivity of ``comp`` to
+``Sigma`` (deterministic, so its exponents carry no Monte-Carlo noise) and the
+concentration of ``Sigmahat``, and the two compose to the theorem's exponents
+without the formula ever being used.  ``claim3b`` also carries the ``delta``
+direction, for the reason recorded next to ``REPORT_ONLY`` below.
 """
 
 from __future__ import annotations
@@ -240,8 +251,18 @@ def run() -> dict:
     #
     # over every configuration, which separates the factors; the marginal
     # slopes are retained as descriptive statistics.
+    #
+    # ``delta`` is deliberately NOT among the gated exponents here.  This fit
+    # regresses log N* on log log(n/delta), which presumes N* is proportional to
+    # a power of log(n/delta).  It is not: Cramer's theorem makes N* *affine* in
+    # log(1/delta), with a substantial negative intercept, so a power law fitted
+    # to it reports a slope above 1 no matter how well the theorem holds.  The
+    # delta direction is tested properly in ``claim3b.delta_rate_checks``, by
+    # measuring the exponential decay rate itself; the exponent below is kept as
+    # a reported diagnostic so the artefact is visible rather than hidden.
     TOL = 1.35          # 35% slack on each exponent for finite-grid noise
-    CAPS = dict(n=4.0, ab=4.0, V=4.0, eps=2.0, delta=1.0)
+    CAPS = dict(n=4.0, ab=4.0, V=4.0, eps=2.0)
+    REPORT_ONLY = dict(delta=1.0)
 
     X, y = [], []
     for r in rows:
@@ -262,15 +283,17 @@ def run() -> dict:
     partial = {nm: (float(beta[i]), float(se[i])) for i, nm in enumerate(names)}
     cond = float(np.linalg.cond(X))
 
+    ALL_CAPS = {**CAPS, **REPORT_ONLY}
     print(f"    joint fit over {len(y)} configurations "
           f"(design condition number {cond:.1f}):", flush=True)
     for nm in names:
         b, s_ = partial[nm]
+        tag = "" if nm in CAPS else "  [reported only -- see claim3b]"
         print(f"      exponent[{nm:<5}] = {b:+.2f} +/- {s_:.2f}   "
-              f"(theorem cap {CAPS[nm]:g})", flush=True)
+              f"(theorem cap {ALL_CAPS[nm]:g}){tag}", flush=True)
 
     all_ok = True
-    for nm in names:
+    for nm in CAPS:
         b, s_ = partial[nm]
         # one-sided: the exponent must not exceed the cap, allowing for the
         # fitted standard error as well as the finite-grid tolerance
@@ -346,9 +369,24 @@ def run() -> dict:
            "exponent below the cap corroborates it; only an exponent clearly "
            "above the cap would contradict it.")
 
+    b_d, s_d = partial["delta"]
+    v.note(f"joint-fit exponent in delta = {b_d:+.2f} +/- {s_d:.2f} against a "
+           f"nominal cap of 1.  This number is reported, not gated: the fit "
+           f"assumes N* is proportional to a power of log(n/delta), whereas N* "
+           f"is affine in it, and a power law fitted to an affine function with "
+           f"a negative intercept always reports a slope above 1.  The delta "
+           f"direction is tested directly below.")
+
+    # ---------------------------------------- reconstructed derivation + delta
+    from .claim3b import delta_rate_checks, derivation_checks
+    deriv = derivation_checks(v)
+    drate = delta_rate_checks(v)
+
     write_json("claim3", "rates.json",
-               dict(joint_fit={k: dict(exponent=b, stderr=s_, cap=CAPS[k])
+               dict(joint_fit={k: dict(exponent=b, stderr=s_,
+                                       cap=ALL_CAPS[k], gated=k in CAPS)
                                for k, (b, s_) in partial.items()},
+                    derivation=deriv, delta_rate=drate,
                     design_condition_number=cond,
                     marginal_slopes={k: dict(measured=s, cap=c)
                                      for k, (s, c) in limits.items()},

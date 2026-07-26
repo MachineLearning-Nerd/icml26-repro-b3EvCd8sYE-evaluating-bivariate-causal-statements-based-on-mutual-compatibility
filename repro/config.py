@@ -23,9 +23,15 @@ FULL = dict(
     # -- Claim 2 ----------------------------------------------------------
     c2_dims=(3, 4, 5, 6, 8, 10),
     c2_trials=20000,
-    c2_trials_cap=400000,
+    c2_trials_cap=600000,
     c2_target_rel_precision=0.35,
     c2_identity_trials=2000,
+    # Symbolic certificates for the proof of Theorem 2.9.  ``c2_symbolic_n``
+    # bounds the exact polynomial-identity checks (cost grows steeply with n);
+    # ``c2_parity_n`` bounds the purely combinatorial exhaustive certificate,
+    # which is cheap enough to push much further.
+    c2_symbolic_n=(3, 4, 5, 6),
+    c2_parity_n=(3, 4, 5, 6, 7, 8, 9),
 
     # -- Claim 3 ----------------------------------------------------------
     c3_eps=(0.20, 0.10, 0.05, 0.025),
@@ -36,6 +42,24 @@ FULL = dict(
     c3_dims=(3, 4, 5, 6, 8, 10),
     c3_repeats=400,          # draws used to estimate P(error <= eps) at each N
     c3_models=12,            # distinct ground-truth models per configuration
+
+    # -- Claim 3b: the reconstructed derivation and the delta rate ---------
+    c3b_grad_models=25,      # gradient vs finite differences
+    c3b_bound_models=300,    # exactness of the two-term sensitivity bound
+    c3b_L_dims=(3, 4, 5, 6, 8, 10),
+    c3b_L_scales=(0.15, 0.25, 0.35, 0.45, 0.6),
+    c3b_L_V=(0.25, 0.5, 1.0, 2.0, 4.0),
+    c3b_L_models=40,         # L is deterministic; these average over models
+    c3b_conc_n=5,
+    c3b_conc_N=(200, 800, 3200),
+    c3b_conc_deltas=(0.5, 0.2, 0.05, 0.01, 0.002, 0.0005),
+    c3b_conc_reps=200000,
+    c3b_rate_n=5,
+    c3b_rate_eps=0.06,
+    c3b_rate_N=tuple(int(round(4 * 2 ** (k / 4))) for k in range(37)),
+    c3b_rate_reps=40000,
+    c3b_rate_models=4,
+    c3b_rate_control_models=2,
 
     # -- Claim 4 ----------------------------------------------------------
     # Figure 2: three panels, each sweeping one parameter.
@@ -72,6 +96,14 @@ SMOKE = dict(
     c1_symbolic_n=(2, 3, 4),
     c2_dims=(3, 4), c2_trials=400, c2_trials_cap=20000,
     c2_target_rel_precision=0.35, c2_identity_trials=100,
+    c2_symbolic_n=(3, 4), c2_parity_n=(3, 4, 5),
+    c3b_grad_models=3, c3b_bound_models=20,
+    c3b_L_dims=(3, 4, 5), c3b_L_scales=(0.2, 0.4), c3b_L_V=(0.5, 1.0, 2.0),
+    c3b_L_models=4, c3b_conc_n=4, c3b_conc_N=(100, 400),
+    c3b_conc_deltas=(0.5, 0.1, 0.01), c3b_conc_reps=4000,
+    c3b_rate_n=4, c3b_rate_eps=0.06,
+    c3b_rate_N=tuple(int(round(4 * 2 ** (k / 4))) for k in range(25)),
+    c3b_rate_reps=2000, c3b_rate_models=2, c3b_rate_control_models=1,
     c3_eps=(0.2, 0.1, 0.05), c3_delta=(0.5, 0.2, 0.06), c3_delta_eps=0.06, c3_delta_repeats=400, c3_delta_models=2, c3_dims=(3, 4, 5), c3_repeats=80, c3_models=2,
     c4_sigmas=(0.0, 0.2, 1.0), c4_models=4, c4_noise=3,
     c4_panels=(("m", (0, 3), dict(n=6, p=0.5)),),

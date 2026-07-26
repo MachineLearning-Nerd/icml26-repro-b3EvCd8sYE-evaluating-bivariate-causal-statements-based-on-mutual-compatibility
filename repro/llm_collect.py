@@ -22,6 +22,7 @@ import time
 import urllib.error
 import urllib.request
 
+from .harness import stable_hash
 from .gapminder import (
     ALL_MODELS,
     GEN_PARAMS,
@@ -245,7 +246,7 @@ def collect_graphical(model_route: str, run_idx: int, token: str) -> dict:
     # Appendix D.3: "we present each pair in a random order, since our graphical
     # incompatibility score also tests the extent to which the causal statements
     # are acyclic".  The order is randomised per run and recorded.
-    rnd = random.Random(hash((model_route, run_idx)) & 0xFFFFFFFF)
+    rnd = random.Random(stable_hash((model_route, run_idx)))
     pairs = [(a, b) if rnd.random() < 0.5 else (b, a) for a, b in pairs]
     rnd.shuffle(pairs)
 

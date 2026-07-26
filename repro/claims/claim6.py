@@ -34,7 +34,8 @@ import os
 import numpy as np
 
 from ..config import CFG, SEED
-from ..harness import Verdict, banner, mean_ci, write_csv, write_json
+from ..harness import (Verdict, banner, mean_ci, stable_hash, write_csv,
+                       write_json)
 from ..generate import inject_graph_errors, sample_graphical_model
 from ..graphical import (
     StatementGraph,
@@ -162,7 +163,7 @@ def run() -> dict:
         for value in values:
             for k in CFG["c6_errors"]:
                 tasks.append((panel, value, tuple(fixed.items()), k, CFG["c6_reps"],
-                              [SEED, 6, hash(panel) % 1000, int(value * 100), k]))
+                              [SEED, 6, stable_hash(panel) % 1000, int(value * 100), k]))
     tasks = [(p, v_, dict(f), k, r, s) for (p, v_, f, k, r, s) in tasks]
     with mp.Pool(processes=min(len(tasks), os.cpu_count() or 1)) as pool:
         fig5 = pool.map(_fig5_worker, tasks)
