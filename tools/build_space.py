@@ -13,6 +13,7 @@ the old file set is a strict subset of the new one.
 
 from __future__ import annotations
 
+import ast
 import csv
 import hashlib
 import json
@@ -38,7 +39,9 @@ CODE_FILES = [
     "repro/linear.py", "repro/graphical.py", "repro/generate.py",
     "repro/gapminder.py", "repro/harness.py", "repro/config.py",
     "repro/run_all.py", "repro/llm_collect.py",
+    "repro/symbolic.py", "repro/sensitivity.py",
     "repro/claims/claim1.py", "repro/claims/claim2.py", "repro/claims/claim3.py",
+    "repro/claims/claim3b.py",
     "repro/claims/claim4.py", "repro/claims/claim5.py", "repro/claims/claim6.py",
     "repro/claims/llm_scores.py",
     "run.sh", "pyproject.toml", "uv.lock",
@@ -47,6 +50,30 @@ CODE_FILES = [
 
 STATUS_BADGE = {"VERIFIED": "**VERIFIED**", "FALSIFIED": "**FALSIFIED**",
                 "BLOCKED": "**BLOCKED**"}
+
+# Modules a claim's verifier calls into, beyond its own claimN.py.
+EXTRA_CODE = {
+    "claim1": [("repro/linear.py", "the linear-SEM core: Definitions 2.5-2.7 "
+                "and the O(n^4) disjoint-path-pair dynamic program")],
+    "claim2": [("repro/symbolic.py", "the machine-checkable certificates: "
+                "exhaustive path-configuration enumeration, exact polynomial "
+                "identities, and Assumption 2.8 as an expectation operator"),
+               ("repro/linear.py", "the numerical implementation the symbolic "
+                "one is cross-checked against")],
+    "claim3": [("repro/claims/claim3b.py", "the reconstructed derivation and "
+                "the large-deviation rate"),
+               ("repro/sensitivity.py", "the closed-form gradient of comp, the "
+                "sensitivity constant L, and the covariance quantiles")],
+    "claim4": [("repro/generate.py", "Appendix D.1's generative procedure"),
+               ("repro/claims/llm_scores.py", "scoring the committed LLM "
+                "transcripts"),
+               ("repro/llm_collect.py", "Appendix D.3's prompts, verbatim")],
+    "claim5": [("repro/graphical.py", "statement graphs, Definition 3.6's "
+                "exact optimum, and Appendix C's three greedy algorithms")],
+    "claim6": [("repro/graphical.py", "as above"),
+               ("repro/claims/llm_scores.py", "scoring the committed LLM "
+                "transcripts")],
+}
 
 
 def read_json(p):
@@ -168,6 +195,12 @@ def claim_page(key, art, summary, fig_for):
              f"green run is not something the suite can fake. "
              f"See [Reproduce](#/reproduce) for the pinned environment.")
     L.append("")
+    L.append("It calls into:")
+    L.append("")
+    L.append(md_table(["module", "what it provides"],
+                      [[f"[`{f}`]({RAW}/code/{f})", why]
+                       for f, why in EXTRA_CODE.get(key, [])]))
+    L.append("")
 
     L.append("## Limitations and deviations")
     L.append("")
@@ -197,11 +230,16 @@ def index_page(summary, art):
     L.append("")
     L.append(f"![headline]({RAW}/figures/figure2_fraction_positive.png)")
     L.append("")
-    L.append("*The paper's Figure 2, reproduced at full scale: 1000 statement "
-             "lists per point (50 model draws x 20 noise draws), three parameter "
-             "sweeps. The fraction of lists with a positive compatibility score "
-             "strictly decreases as the statements degrade — the paper's actual "
-             "monotonicity claim.*")
+    cfg = summary.get("config", {})
+    n_models = int(cfg.get("c4_models", 0) or 0)
+    n_noise = int(cfg.get("c4_noise", 0) or 0)
+    n_panels = len(ast.literal_eval(cfg.get("c4_panels", "()")))
+    L.append(f"*The paper's Figure 2, reproduced at full scale: "
+             f"{n_models * n_noise:,} statement lists per point "
+             f"({n_models} model draws x {n_noise} noise draws), {n_panels} "
+             f"parameter sweeps. The fraction of lists with a positive "
+             f"compatibility score strictly decreases as the statements "
+             f"degrade — the paper's actual monotonicity claim.*")
     L.append("")
 
     L.append("## Verdicts")
