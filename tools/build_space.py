@@ -228,7 +228,7 @@ def index_page(summary, art):
              "audit, executable code, raw data, an independent checker and a "
              "negative control.")
     L.append("")
-    L.append(f"![headline]({RAW}/figures/figure2_fraction_positive.png)")
+    L.append(f"![headline]({RAW}/figures/figure2_fraction_positive.svg)")
     L.append("")
     cfg = summary.get("config", {})
     n_models = int(cfg.get("c4_models", 0) or 0)
@@ -285,14 +285,16 @@ def index_page(summary, art):
     L.append("## Figures")
     L.append("")
     figs = [
-        ("figure2_fraction_positive.png",
+        ("figure2_fraction_positive.svg",
          "Claim 4 — Figure 2 reproduced at full scale"),
-        ("lemma37.png", "Claim 6 — Lemma 3.7 verified exhaustively"),
-        ("figure5_monotonicity.png", "Claim 6 — Figure 5 reproduced"),
-        ("sample_complexity.png",
+        ("derivation.svg",
+         "Claim 3 — Theorem 2.10 reconstructed from its two ingredients"),
+        ("lemma37.svg", "Claim 6 — Lemma 3.7 verified exhaustively"),
+        ("figure5_monotonicity.svg", "Claim 6 — Figure 5 reproduced"),
+        ("sample_complexity.svg",
          "Claim 3 — measured minimum sample size vs the theorem's bound"),
-        ("expected_compatibility.png", "Claim 2 — Theorem 2.9 across families"),
-        ("llm_scores.png", "Claims 4 and 6 — LLM statement quality vs capacity"),
+        ("expected_compatibility.svg", "Claim 2 — Theorem 2.9 across families"),
+        ("llm_scores.svg", "Claims 4 and 6 — LLM statement quality vs capacity"),
     ]
     for fn, cap in figs:
         if os.path.exists(os.path.join(art, "..", "figures", fn)):
@@ -686,10 +688,10 @@ def build(art_dir, run_log, out_dir, judged_dir, repo_root, paper_sha):
         shutil.copy2(src, dst)
 
     # 5. pages
-    fig_for = {"claim2": "expected_compatibility.png",
-               "claim3": "sample_complexity.png",
-               "claim4": "figure2_fraction_positive.png",
-               "claim6": "lemma37.png"}
+    fig_for = {"claim2": "expected_compatibility.svg",
+               "claim3": "derivation.svg",
+               "claim4": "figure2_fraction_positive.svg",
+               "claim6": "lemma37.svg"}
     pages = {}
     for key in CLAIM_ORDER:
         pages[f"pages/{key}/page.md"] = claim_page(
