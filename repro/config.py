@@ -88,7 +88,7 @@ FULL = dict(
         ("n", (5, 7, 10, 15), dict(m=3, p=0.3)),
         ("p", (0.2, 0.3, 0.5, 0.7), dict(n=10, m=3)),
     ),
-    c6_reps=50,
+    c6_reps=200,   # Figure 5 cells; raised from 50 to cut the cell-mean noise
 )
 
 SMOKE = dict(
@@ -98,7 +98,7 @@ SMOKE = dict(
     c2_target_rel_precision=0.35, c2_identity_trials=100,
     c2_symbolic_n=(3, 4), c2_parity_n=(3, 4, 5),
     c3b_grad_models=3, c3b_bound_models=20,
-    c3b_L_dims=(3, 4, 5), c3b_L_scales=(0.2, 0.4), c3b_L_V=(0.5, 1.0, 2.0),
+    c3b_L_dims=(3, 5, 8), c3b_L_scales=(0.15, 0.3, 0.5), c3b_L_V=(0.5, 1.0, 2.0),
     c3b_L_models=4, c3b_conc_n=4, c3b_conc_N=(100, 400),
     c3b_conc_deltas=(0.5, 0.1, 0.01), c3b_conc_reps=4000,
     c3b_rate_n=4, c3b_rate_eps=0.06,
