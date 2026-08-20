@@ -1,0 +1,27 @@
+cff-version: 1.2.0
+title: "Legacy/source workspace for Evaluating Bivariate Causal Statements Based on Mutual Compatibility"
+type: software
+authors:
+  - family-names: Jahn
+    given-names: Erik
+  - family-names: Janzing
+    given-names: Dominik
+repository-code: "https://github.com/MachineLearning-Nerd/icml26-legacy-bivariate-causal-compatibility"
+url: "https://github.com/MachineLearning-Nerd/icml26-legacy-bivariate-causal-compatibility"
+abstract: "Legacy/source workspace preserving the implementation, evidence artifacts, and branch history for the associated ICML 2026 reproduction record."
+keywords:
+  - reproduction
+  - ICML 2026
+references:
+  - type: article
+    title: "Evaluating Bivariate Causal Statements Based on Mutual Compatibility"
+    authors:
+      - family-names: Jahn
+        given-names: Erik
+      - family-names: Janzing
+        given-names: Dominik
+    identifiers:
+      - type: arxiv
+        value: "2606.00278"
+    url: "https://arxiv.org/abs/2606.00278"
+

@@ -1,5 +1,30 @@
 # Reproducing *Evaluating Bivariate Causal Statements Based on Mutual Compatibility*
 
+## Collection classification and audit boundary
+
+This repository is a **legacy/source workspace** for *Evaluating Bivariate Causal Statements Based on Mutual Compatibility*
+(arXiv `2606.00278`, OpenReview `b3EvCd8sYE`). It is preserved
+separately from the standardized canonical record at
+[`icml26-bivariate-causal-compatibility`](https://github.com/MachineLearning-Nerd/icml26-bivariate-causal-compatibility).
+
+The claim results and scores recorded below are historical results of this
+workspace. They are not new paper-level verifications performed while
+organizing the collection. The collection audit did not run the scientific
+implementation; the canonical record documents its own scoped status and
+limitations.
+
+### How the historical claim evidence is produced
+
+The claim table and experiment log below are the authoritative mapping from
+each paper claim to its producer, command, control, and evidence artifact. In
+this workspace, the claim-specific scripts, notebooks, and checker routes write their raw bundles and verdict pages under `.openresearch/artifacts/`; the claim table below names each statistical or symbolic producer.
+
+The former `orx/*` branches are historical workstreams, not additional final
+publication claims. Their purposes and tips are preserved in
+[`BRANCH_AUDIT.md`](BRANCH_AUDIT.md). Citation and author acknowledgment
+details are in [`CITATION.cff`](CITATION.cff) and
+[`AUTHOR_THANK_YOU.md`](AUTHOR_THANK_YOU.md).
+
 A clean-room, CPU-only reproduction of all six anchored claims of
 [arXiv:2606.00278](https://arxiv.org/abs/2606.00278) (Erik Jahn, Dominik
 Janzing; OpenReview [b3EvCd8sYE](https://openreview.net/forum?id=b3EvCd8sYE)).
