@@ -25,6 +25,10 @@ publication claims. Their purposes and tips are preserved in
 details are in [`CITATION.cff`](CITATION.cff) and
 [`AUTHOR_THANK_YOU.md`](AUTHOR_THANK_YOU.md).
 
+## Thank you
+
+Thank you to the paper authors for making this research available for study. The full acknowledgment is in [`AUTHOR_THANK_YOU.md`](AUTHOR_THANK_YOU.md).
+
 A clean-room, CPU-only reproduction of all six anchored claims of
 [arXiv:2606.00278](https://arxiv.org/abs/2606.00278) (Erik Jahn, Dominik
 Janzing; OpenReview [b3EvCd8sYE](https://openreview.net/forum?id=b3EvCd8sYE)).
